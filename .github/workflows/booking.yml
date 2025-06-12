@@ -18,7 +18,13 @@ jobs:
           node-version: '16'
           
       - name: Install dependencies
-        run: npm install axios
+        run: npm install
         
       - name: Run booking script
+        env:
+          TOKEN: ${{ secrets.TOKEN }}
+          DEVICE_ID: ${{ secrets.DEVICE_ID }}
+          CARD_ID: ${{ secrets.CARD_ID }}
+          SLOT_ID: ${{ secrets.SLOT_ID }}
+          CONTACT: ${{ secrets.CONTACT }}
         run: node booking-script.js
