@@ -13,16 +13,23 @@ const createAppointmentPath = 'privateapi/booking/create_appointment';
 
 // Calculate timestamps for next Wednesday's booking slots in Thai timezone (UTC+7)
 function getNextWednesdayTimestamps() {
-  // Create date object with Thai timezone offset
+  // Create date object with Thai timezone offset explicitly
+  const now = new Date();
   
-  const now = new Date();  
-  // Find the next Wednesday (day 3)
-  let nextWednesday = new Date(now);
-  nextWednesday.setDate(now.getDate() + (3 + 7 - now.getDay()) % 7);
+  // Get current date in ISO format and force it to be interpreted as UTC
+  const nowStr = now.toISOString();
+  // Create a date that's explicitly in UTC
+  const nowUTC = new Date(nowStr);
+  // Add 7 hours for Thai timezone (UTC+7)
+  const nowThai = new Date(nowUTC.getTime() + (7 * 60 * 60 * 1000));
+  
+  // Find the next Wednesday (day 3) in Thai time
+  let nextWednesday = new Date(nowThai);
+  nextWednesday.setDate(nowThai.getDate() + (3 + 7 - nowThai.getDay()) % 7);
   
   // If today is Wednesday and it's before booking time, use today
-  if (now.getDay() === 3 && now.getHours() < 18) {
-    nextWednesday = now;
+  if (nowThai.getDay() === 3 && nowThai.getHours() < 18) {
+    nextWednesday = nowThai;
   }
   
   // Set to specific times (18:00 and 19:00) in Thai time
@@ -83,26 +90,26 @@ async function bookCourt(slotNumber = 1) {
       form.append(key, payload[key]);
     });
     
-    const response = await axios.post(
-      `${baseUrl}/${createAppointmentPath}`,
-      form,
-      {
-        headers: {
-          ...form.getHeaders(),
-          'User-Agent': 'PostmanRuntime/7.43.0'
-        }
-      }
-    );
+    // const response = await axios.post(
+    //   `${baseUrl}/${createAppointmentPath}`,
+    //   form,
+    //   {
+    //     headers: {
+    //       ...form.getHeaders(),
+    //       'User-Agent': 'PostmanRuntime/7.43.0'
+    //     }
+    //   }
+    // );
     
-    console.log('Booking successful:', response.data);
+    // console.log('Booking successful:', response.data);
     return true;
   } catch (error) {
-    console.error('Booking failed:', error.message);
-    if (error.response) {
-      console.error('Response status:', error.response.status);
-      console.error('Response data:', error.response.data);
-      console.error('Response headers:', error.response.headers);
-    }
+    // console.error('Booking failed:', error.message);
+    // if (error.response) {
+    //   console.error('Response status:', error.response.status);
+    //   console.error('Response data:', error.response.data);
+    //   console.error('Response headers:', error.response.headers);
+    // }
     return false;
   }
 }
@@ -116,7 +123,7 @@ async function bookBothSlots() {
   // Log the booking times in human-readable format (Thai time)
   const formatThaiTime = (timestamp) => {
     const date = new Date(timestamp * 1000);
-    return `${date.toDateString()} ${date.toTimeString()}`;
+    return `${date.toDateString()} ${date.toTimeString()} (Thai time: GMT+7)`;
   };
   
   console.log('Slot 1 (18:00-19:00):', formatThaiTime(slots.slot1.start), 'to', formatThaiTime(slots.slot1.end));
