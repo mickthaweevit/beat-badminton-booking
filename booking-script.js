@@ -8,6 +8,8 @@ const cardId = parseInt(process.env.CARD_ID);
 const slotId = parseInt(process.env.SLOT_ID);
 const contact = process.env.CONTACT;
 
+const weekday = 5
+
 // Check if required environment variables are set
 if (!token || !deviceId || !cardId || !slotId || !contact) {
   console.error('Error: Missing required environment variables.');
@@ -31,8 +33,8 @@ function getNextWednesdayTimestamps() {
   let nextWednesday = moment().tz('Asia/Bangkok');
   
   // If today is not Wednesday or it's Wednesday but after 18:00, find next Wednesday
-  if (now.day() !== 3 || (now.day() === 3 && now.hour() >= 18)) {
-    nextWednesday = now.day(3 + 7);
+  if (now.day() !== weekday || (now.day() === weekday && now.hour() >= 18)) {
+    nextWednesday = now.day(weekday + 7);
   } else {
     // Today is Wednesday and before 18:00
     nextWednesday = now;
@@ -125,11 +127,11 @@ async function bookBothSlots() {
   console.log('First slot booking ' + (slot1Success ? 'successful' : 'failed'));
   
   // Wait 5 seconds between bookings
-  await new Promise(resolve => setTimeout(resolve, 5000));
+  // await new Promise(resolve => setTimeout(resolve, 5000));
   
   // Book second slot (19:00-20:00)
-  const slot2Success = await bookCourt(2);
-  console.log('Second slot booking ' + (slot2Success ? 'successful' : 'failed'));
+  // const slot2Success = await bookCourt(2);
+  // console.log('Second slot booking ' + (slot2Success ? 'successful' : 'failed'));
   
   console.log('Booking process completed');
 }
