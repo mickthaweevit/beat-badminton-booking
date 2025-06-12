@@ -10,12 +10,7 @@ This project automatically books badminton courts every Wednesday at 18:00-19:00
 
 ## Setup
 
-1. Create a `.env` file from the example:
-   ```
-   cp .env.example .env
-   ```
-
-2. Push this repository to GitHub:
+1. Push this repository to GitHub:
    ```
    git init
    git add .
@@ -24,7 +19,7 @@ This project automatically books badminton courts every Wednesday at 18:00-19:00
    git push -u origin main
    ```
 
-3. Add your secrets to GitHub repository:
+2. Add your secrets to GitHub repository:
    - Go to your repository on GitHub
    - Navigate to Settings > Secrets and variables > Actions
    - Add the following secrets:
@@ -34,14 +29,22 @@ This project automatically books badminton courts every Wednesday at 18:00-19:00
      - SLOT_ID
      - CONTACT
 
-4. GitHub Actions will automatically run according to the schedule
+3. Enable GitHub Actions:
+   - Go to your repository on GitHub
+   - Click on the "Actions" tab
+   - Click "I understand my workflows, go ahead and enable them"
 
-## Updating Tokens
+4. Test the workflow:
+   - Go to the "Actions" tab
+   - Select "Badminton Court Booking" workflow
+   - Click "Run workflow" > "Run workflow"
+   - Check the logs to ensure it's working correctly
 
-When your token or device ID expires:
+## Important Notes
 
-1. Update the values in your GitHub repository secrets
-2. No code changes needed
+- GitHub Actions scheduled workflows don't run immediately after being pushed
+- GitHub may delay scheduled workflows by up to 15 minutes during periods of high loads
+- For testing, use the manual trigger option ("workflow_dispatch")
 
 ## Manual Testing
 

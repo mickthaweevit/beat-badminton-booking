@@ -42,9 +42,6 @@ function getNextWednesdayTimestamps() {
   const slot2Start = nextWednesday.clone().hour(19).minute(0).second(0);
   const slot2End = nextWednesday.clone().hour(20).minute(0).second(0);
   
-  console.log('Slot 1:', slot1Start.format('YYYY-MM-DD HH:mm:ss'), 'to', slot1End.format('YYYY-MM-DD HH:mm:ss'));
-  console.log('Slot 2:', slot2Start.format('YYYY-MM-DD HH:mm:ss'), 'to', slot2End.format('YYYY-MM-DD HH:mm:ss'));
-  
   // Convert to Unix timestamps (seconds)
   return {
     slot1: {
@@ -63,8 +60,6 @@ async function bookCourt(slotNumber = 1) {
     const slots = getNextWednesdayTimestamps();
     const bookingSlot = slotNumber === 1 ? slots.slot1 : slots.slot2;
     
-    console.log(`Booking court for Wednesday ${new Date(bookingSlot.start * 1000).toLocaleTimeString()} - ${new Date(bookingSlot.end * 1000).toLocaleTimeString()}`);
-    
     const payload = {
       token: token,
       device_id: deviceId,
@@ -78,8 +73,8 @@ async function bookCourt(slotNumber = 1) {
       amount: 1, // number of court
     };
     
-    console.log(`${baseUrl}/${createAppointmentPath}`)
-    console.log(payload)
+    console.log(payload.start)
+    console.log(payload.end)
 
     // Use FormData for multipart/form-data requests
     const FormData = require('form-data');
@@ -90,26 +85,26 @@ async function bookCourt(slotNumber = 1) {
       form.append(key, payload[key]);
     });
     
-    // const response = await axios.post(
-    //   `${baseUrl}/${createAppointmentPath}`,
-    //   form,
-    //   {
-    //     headers: {
-    //       ...form.getHeaders(),
-    //       'User-Agent': 'PostmanRuntime/7.43.0'
-    //     }
-    //   }
-    // );
+    const response = await axios.post(
+      `${baseUrl}/${createAppointmentPath}`,
+      form,
+      {
+        headers: {
+          ...form.getHeaders(),
+          'User-Agent': 'PostmanRuntime/7.43.0'
+        }
+      }
+    );
     
-    // console.log('Booking successful:', response.data);
+    console.log('Booking successful:', response.data);
     return true;
   } catch (error) {
-    // console.error('Booking failed:', error.message);
-    // if (error.response) {
-    //   console.error('Response status:', error.response.status);
-    //   console.error('Response data:', error.response.data);
-    //   console.error('Response headers:', error.response.headers);
-    // }
+    console.error('Booking failed:', error.message);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      console.error('Response headers:', error.response.headers);
+    }
     return false;
   }
 }
@@ -117,20 +112,6 @@ async function bookCourt(slotNumber = 1) {
 // Execute booking for both slots
 async function bookBothSlots() {
   console.log('Starting badminton court booking process...');
-
-  const slots = getNextWednesdayTimestamps();
-  
-  // Display the booking times in a readable format
-  const moment = require('moment-timezone');
-  const slot1StartTime = moment.unix(slots.slot1.start).tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss');
-  const slot1EndTime = moment.unix(slots.slot1.end).tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss');
-  const slot2StartTime = moment.unix(slots.slot2.start).tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss');
-  const slot2EndTime = moment.unix(slots.slot2.end).tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss');
-  
-  console.log(`Booking for next Wednesday:`);
-  console.log(`Slot 1: ${slot1StartTime} - ${slot1EndTime} (Thai time)`);
-  console.log(`Slot 2: ${slot2StartTime} - ${slot2EndTime} (Thai time)`);
-  console.log('Timestamps:', slots);
   
   // Book first slot (18:00-19:00)
   const slot1Success = await bookCourt(1);
