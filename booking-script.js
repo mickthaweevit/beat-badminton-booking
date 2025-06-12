@@ -1,12 +1,19 @@
 const axios = require('axios');
 require('dotenv').config();
 
-// Configuration from environment variables or fallback to defaults
-const token = process.env.TOKEN || 'f96c818b2f7aca6473205acc6cd541644f9b5618';
-const deviceId = process.env.DEVICE_ID || '1a84b828-7c7a-4e63-9387-0eccec1e1566';
-const cardId = parseInt(process.env.CARD_ID || '6364');
-const slotId = parseInt(process.env.SLOT_ID || '12489');
-const contact = process.env.CONTACT || '0900190217';
+// Configuration from environment variables
+const token = process.env.TOKEN;
+const deviceId = process.env.DEVICE_ID;
+const cardId = parseInt(process.env.CARD_ID);
+const slotId = parseInt(process.env.SLOT_ID);
+const contact = process.env.CONTACT;
+
+// Check if required environment variables are set
+if (!token || !deviceId || !cardId || !slotId || !contact) {
+  console.error('Error: Missing required environment variables.');
+  console.error('Please make sure TOKEN, DEVICE_ID, CARD_ID, SLOT_ID, and CONTACT are set.');
+  process.exit(1);
+}
 
 const baseUrl = 'https://www.loga.app';
 const createAppointmentPath = 'privateapi/booking/create_appointment';

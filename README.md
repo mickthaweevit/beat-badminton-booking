@@ -8,9 +8,33 @@ This project automatically books badminton courts every Wednesday at 18:00-19:00
 2. The script automatically calculates the timestamps for next Wednesday's booking slots
 3. The workflow books both time slots (18:00-19:00 and 19:00-20:00)
 
-## Setup
+## Local Setup
 
-1. Push this repository to GitHub:
+1. Clone the repository
+2. Create a `.env` file from the example:
+   ```
+   cp .env.example .env
+   ```
+3. Fill in your personal values in the `.env` file:
+   ```
+   TOKEN=your_token_here
+   DEVICE_ID=your_device_id_here
+   CARD_ID=6364
+   SLOT_ID=12489
+   CONTACT=your_phone_number_here
+   ```
+4. Install dependencies:
+   ```
+   npm install
+   ```
+5. Run the script locally:
+   ```
+   npm run book
+   ```
+
+## GitHub Setup
+
+1. Push this repository to GitHub (the `.env` file will not be included):
    ```
    git init
    git add .
@@ -45,12 +69,4 @@ This project automatically books badminton courts every Wednesday at 18:00-19:00
 - GitHub Actions scheduled workflows don't run immediately after being pushed
 - GitHub may delay scheduled workflows by up to 15 minutes during periods of high loads
 - For testing, use the manual trigger option ("workflow_dispatch")
-
-## Manual Testing
-
-To test the booking script locally:
-
-```
-npm install
-npm run book
-```
+- Never commit your `.env` file to the repository

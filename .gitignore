@@ -2,7 +2,7 @@
 node_modules/
 package-lock.json
 
-# Environment variables
+# Environment variables - IMPORTANT: Don't commit this file!
 .env
 
 # Logs
