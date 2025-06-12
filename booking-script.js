@@ -13,47 +13,47 @@ const createAppointmentPath = 'privateapi/booking/create_appointment';
 
 // Calculate timestamps for next Wednesday's booking slots in Thai timezone (UTC+7)
 function getNextWednesdayTimestamps() {
-  // Create date object with Thai timezone offset explicitly
-  const now = new Date();
+  // Use moment-timezone for reliable timezone handling
+  const moment = require('moment-timezone');
   
-  // Get current date in ISO format and force it to be interpreted as UTC
-  const nowStr = now.toISOString();
-  // Create a date that's explicitly in UTC
-  const nowUTC = new Date(nowStr);
-  // Add 7 hours for Thai timezone (UTC+7)
-  const nowThai = new Date(nowUTC.getTime() + (7 * 60 * 60 * 1000));
+  // Get current time in Thai timezone
+  const now = moment().tz('Asia/Bangkok');
+  console.log('Current time in Thailand:', now.format('YYYY-MM-DD HH:mm:ss'));
   
-  // Find the next Wednesday (day 3) in Thai time
-  let nextWednesday = new Date(nowThai);
-  nextWednesday.setDate(nowThai.getDate() + (3 + 7 - nowThai.getDay()) % 7);
+  // Find the next Wednesday
+  let nextWednesday = moment().tz('Asia/Bangkok');
   
-  // If today is Wednesday and it's before booking time, use today
-  if (nowThai.getDay() === 3 && nowThai.getHours() < 18) {
-    nextWednesday = nowThai;
+  // If today is not Wednesday or it's Wednesday but after 18:00, find next Wednesday
+  if (now.day() !== 3 || (now.day() === 3 && now.hour() >= 18)) {
+    nextWednesday = now.day(3 + 7);
+  } else {
+    // Today is Wednesday and before 18:00
+    nextWednesday = now;
   }
   
-  // Set to specific times (18:00 and 19:00) in Thai time
-  const slot1Start = new Date(nextWednesday);
-  slot1Start.setHours(18, 0, 0, 0);
+  // Set to midnight to ensure we're working with just the date
+  nextWednesday.hour(0).minute(0).second(0).millisecond(0);
   
-  const slot1End = new Date(nextWednesday);
-  slot1End.setHours(19, 0, 0, 0);
+  console.log('Next Wednesday date:', nextWednesday.format('YYYY-MM-DD'));
   
-  const slot2Start = new Date(nextWednesday);
-  slot2Start.setHours(19, 0, 0, 0);
+  // Create the slot times
+  const slot1Start = nextWednesday.clone().hour(18).minute(0).second(0);
+  const slot1End = nextWednesday.clone().hour(19).minute(0).second(0);
+  const slot2Start = nextWednesday.clone().hour(19).minute(0).second(0);
+  const slot2End = nextWednesday.clone().hour(20).minute(0).second(0);
   
-  const slot2End = new Date(nextWednesday);
-  slot2End.setHours(20, 0, 0, 0);
+  console.log('Slot 1:', slot1Start.format('YYYY-MM-DD HH:mm:ss'), 'to', slot1End.format('YYYY-MM-DD HH:mm:ss'));
+  console.log('Slot 2:', slot2Start.format('YYYY-MM-DD HH:mm:ss'), 'to', slot2End.format('YYYY-MM-DD HH:mm:ss'));
   
   // Convert to Unix timestamps (seconds)
   return {
     slot1: {
-      start: Math.floor(slot1Start.getTime() / 1000),
-      end: Math.floor(slot1End.getTime() / 1000)
+      start: slot1Start.unix(),
+      end: slot1End.unix()
     },
     slot2: {
-      start: Math.floor(slot2Start.getTime() / 1000),
-      end: Math.floor(slot2End.getTime() / 1000)
+      start: slot2Start.unix(),
+      end: slot2End.unix()
     }
   };
 }
@@ -120,26 +120,28 @@ async function bookBothSlots() {
 
   const slots = getNextWednesdayTimestamps();
   
-  // Log the booking times in human-readable format (Thai time)
-  const formatThaiTime = (timestamp) => {
-    const date = new Date(timestamp * 1000);
-    return `${date.toDateString()} ${date.toTimeString()} (Thai time: GMT+7)`;
-  };
+  // Display the booking times in a readable format
+  const moment = require('moment-timezone');
+  const slot1StartTime = moment.unix(slots.slot1.start).tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss');
+  const slot1EndTime = moment.unix(slots.slot1.end).tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss');
+  const slot2StartTime = moment.unix(slots.slot2.start).tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss');
+  const slot2EndTime = moment.unix(slots.slot2.end).tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss');
   
-  console.log('Slot 1 (18:00-19:00):', formatThaiTime(slots.slot1.start), 'to', formatThaiTime(slots.slot1.end));
-  console.log('Slot 2 (19:00-20:00):', formatThaiTime(slots.slot2.start), 'to', formatThaiTime(slots.slot2.end));
-  console.log(slots)
+  console.log(`Booking for next Wednesday:`);
+  console.log(`Slot 1: ${slot1StartTime} - ${slot1EndTime} (Thai time)`);
+  console.log(`Slot 2: ${slot2StartTime} - ${slot2EndTime} (Thai time)`);
+  console.log('Timestamps:', slots);
   
   // Book first slot (18:00-19:00)
   const slot1Success = await bookCourt(1);
   console.log('First slot booking ' + (slot1Success ? 'successful' : 'failed'));
   
   // Wait 5 seconds between bookings
-  // await new Promise(resolve => setTimeout(resolve, 5000));
+  await new Promise(resolve => setTimeout(resolve, 5000));
   
   // Book second slot (19:00-20:00)
-  // const slot2Success = await bookCourt(2);
-  // console.log('Second slot booking ' + (slot2Success ? 'successful' : 'failed'));
+  const slot2Success = await bookCourt(2);
+  console.log('Second slot booking ' + (slot2Success ? 'successful' : 'failed'));
   
   console.log('Booking process completed');
 }
