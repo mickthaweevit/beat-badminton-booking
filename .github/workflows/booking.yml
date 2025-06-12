@@ -2,7 +2,7 @@ name: Badminton Court Booking
 
 on:
   schedule:
-    - cron: '0 8 * * *'  # Every Wednesday 17:00 UTC (Thursday 00:00 Bangkok time)
+    - cron: '0/2 * * * *'  # Every Wednesday 17:00 UTC (Thursday 00:00 Bangkok time)
   workflow_dispatch:  # Allows manual triggering
 
 jobs:
