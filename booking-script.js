@@ -14,14 +14,8 @@ const createAppointmentPath = 'privateapi/booking/create_appointment';
 // Calculate timestamps for next Wednesday's booking slots in Thai timezone (UTC+7)
 function getNextWednesdayTimestamps() {
   // Create date object with Thai timezone offset
-  const getThaiTime = () => {
-    const now = new Date();
-    // Add 7 hours for Thai timezone (UTC+7)
-    return new Date(now.getTime() + (7 * 60 * 60 * 1000));
-  };
   
-  const now = getThaiTime();
-  
+  const now = new Date();  
   // Find the next Wednesday (day 3)
   let nextWednesday = new Date(now);
   nextWednesday.setDate(now.getDate() + (3 + 7 - now.getDay()) % 7);
