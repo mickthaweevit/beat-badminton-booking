@@ -2,8 +2,8 @@ const axios = require('axios');
 require('dotenv').config();
 
 // Configuration from environment variables or fallback to defaults
-const token = process.env.TOKEN || 'a8576331244a5a001d5e2000e4ff5ad8619b6159';
-const deviceId = process.env.DEVICE_ID || '85eae198-d32a-4dc6-9a6d-9599e798ff1c';
+const token = process.env.TOKEN || 'f96c818b2f7aca6473205acc6cd541644f9b5618';
+const deviceId = process.env.DEVICE_ID || '1a84b828-7c7a-4e63-9387-0eccec1e1566';
 const cardId = parseInt(process.env.CARD_ID || '6364');
 const slotId = parseInt(process.env.SLOT_ID || '12489');
 const contact = process.env.CONTACT || '0900190217';
@@ -11,9 +11,16 @@ const contact = process.env.CONTACT || '0900190217';
 const baseUrl = 'https://www.loga.app';
 const createAppointmentPath = 'privateapi/booking/create_appointment';
 
-// Calculate timestamps for next Wednesday's booking slots
+// Calculate timestamps for next Wednesday's booking slots in Thai timezone (UTC+7)
 function getNextWednesdayTimestamps() {
-  const now = new Date();
+  // Create date object with Thai timezone offset
+  const getThaiTime = () => {
+    const now = new Date();
+    // Add 7 hours for Thai timezone (UTC+7)
+    return new Date(now.getTime() + (7 * 60 * 60 * 1000));
+  };
+  
+  const now = getThaiTime();
   
   // Find the next Wednesday (day 3)
   let nextWednesday = new Date(now);
@@ -24,7 +31,7 @@ function getNextWednesdayTimestamps() {
     nextWednesday = now;
   }
   
-  // Set to specific times (18:00 and 19:00)
+  // Set to specific times (18:00 and 19:00) in Thai time
   const slot1Start = new Date(nextWednesday);
   slot1Start.setHours(18, 0, 0, 0);
   
@@ -37,6 +44,7 @@ function getNextWednesdayTimestamps() {
   const slot2End = new Date(nextWednesday);
   slot2End.setHours(20, 0, 0, 0);
   
+  // Convert to Unix timestamps (seconds)
   return {
     slot1: {
       start: Math.floor(slot1Start.getTime() / 1000),
@@ -69,9 +77,27 @@ async function bookCourt(slotNumber = 1) {
       amount: 1, // number of court
     };
     
+    console.log(`${baseUrl}/${createAppointmentPath}`)
+    console.log(payload)
+
+    // Use FormData for multipart/form-data requests
+    const FormData = require('form-data');
+    const form = new FormData();
+    
+    // Add all payload fields to the form
+    Object.keys(payload).forEach(key => {
+      form.append(key, payload[key]);
+    });
+    
     const response = await axios.post(
-      `${baseUrl}/${createAppointmentPath}`, 
-      payload
+      `${baseUrl}/${createAppointmentPath}`,
+      form,
+      {
+        headers: {
+          ...form.getHeaders(),
+          'User-Agent': 'PostmanRuntime/7.43.0'
+        }
+      }
     );
     
     console.log('Booking successful:', response.data);
@@ -79,7 +105,9 @@ async function bookCourt(slotNumber = 1) {
   } catch (error) {
     console.error('Booking failed:', error.message);
     if (error.response) {
+      console.error('Response status:', error.response.status);
       console.error('Response data:', error.response.data);
+      console.error('Response headers:', error.response.headers);
     }
     return false;
   }
@@ -90,11 +118,20 @@ async function bookBothSlots() {
   console.log('Starting badminton court booking process...');
 
   const slots = getNextWednesdayTimestamps();
+  
+  // Log the booking times in human-readable format (Thai time)
+  const formatThaiTime = (timestamp) => {
+    const date = new Date(timestamp * 1000);
+    return `${date.toDateString()} ${date.toTimeString()}`;
+  };
+  
+  console.log('Slot 1 (18:00-19:00):', formatThaiTime(slots.slot1.start), 'to', formatThaiTime(slots.slot1.end));
+  console.log('Slot 2 (19:00-20:00):', formatThaiTime(slots.slot2.start), 'to', formatThaiTime(slots.slot2.end));
   console.log(slots)
   
   // Book first slot (18:00-19:00)
-  // const slot1Success = await bookCourt(1);
-  // console.log('First slot booking ' + (slot1Success ? 'successful' : 'failed'));
+  const slot1Success = await bookCourt(1);
+  console.log('First slot booking ' + (slot1Success ? 'successful' : 'failed'));
   
   // Wait 5 seconds between bookings
   // await new Promise(resolve => setTimeout(resolve, 5000));
