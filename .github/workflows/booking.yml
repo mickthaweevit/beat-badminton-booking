@@ -1,0 +1,24 @@
+name: Badminton Court Booking
+
+on:
+  schedule:
+    - cron: '0 17 * * 3'  # Every Wednesday 17:00 UTC (Thursday 00:00 Bangkok time)
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  book-court:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          
+      - name: Install dependencies
+        run: npm install axios
+        
+      - name: Run booking script
+        run: node booking-script.js
