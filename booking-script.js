@@ -103,26 +103,26 @@ async function bookCourt(slotNumber = 1) {
       form.append(key, payload[key]);
     });
     
-    const response = await axios.post(
-      `${baseUrl}/${createAppointmentPath}`,
-      form,
-      {
-        headers: {
-          ...form.getHeaders(),
-          'User-Agent': 'PostmanRuntime/7.43.0'
-        }
-      }
-    );
+    // const response = await axios.post(
+    //   `${baseUrl}/${createAppointmentPath}`,
+    //   form,
+    //   {
+    //     headers: {
+    //       ...form.getHeaders(),
+    //       'User-Agent': 'PostmanRuntime/7.43.0'
+    //     }
+    //   }
+    // );
     
-    console.log('Booking successful:', response.data);
+    // console.log('Booking successful:', response.data);
     return true;
   } catch (error) {
-    console.error('Booking failed:', error.message);
-    if (error.response) {
-      console.error('Response status:', error.response.status);
-      console.error('Response data:', error.response.data);
-      console.error('Response headers:', error.response.headers);
-    }
+    // console.error('Booking failed:', error.message);
+    // if (error.response) {
+    //   console.error('Response status:', error.response.status);
+    //   console.error('Response data:', error.response.data);
+    //   console.error('Response headers:', error.response.headers);
+    // }
     return false;
   }
 }
