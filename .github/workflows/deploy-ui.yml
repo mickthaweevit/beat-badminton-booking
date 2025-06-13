@@ -27,7 +27,7 @@ jobs:
       - name: Build
         run: |
           cd ui
-          npm run build
+          npm run build || (cat /home/runner/.npm/_logs/*-debug.log && exit 1)
           
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
