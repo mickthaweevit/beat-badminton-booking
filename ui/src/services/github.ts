@@ -32,8 +32,9 @@ export class GitHubService {
     }
 
     try {
-      // First, get the current file to get its SHA
+      // First, get the current file to get its SHA and content
       let sha = '';
+      let currentContent = null;
       try {
         const fileResponse = await axios.get(
           `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${path}`,
@@ -45,16 +46,41 @@ export class GitHubService {
           }
         );
         sha = fileResponse.data.sha;
+        
+        // Decode the content from base64
+        if (fileResponse.data.content) {
+          const decoded = atob(fileResponse.data.content.replace(/\n/g, ''));
+          try {
+            currentContent = JSON.parse(decoded);
+          } catch (e) {
+            // Not valid JSON, treat as different
+          }
+        }
       } catch (error) {
         // File doesn't exist yet, that's OK
       }
+      
+      // Check if content is the same to avoid unnecessary commits
+      if (currentContent) {
+        const currentJson = JSON.stringify(currentContent);
+        const newJson = JSON.stringify(content);
+        
+        if (currentJson === newJson) {
+          console.log('Config file content unchanged, skipping commit');
+          return true; // No need to update
+        }
+      }
+
+      // Convert content to base64
+      const contentStr = JSON.stringify(content, null, 2);
+      const contentBase64 = this.toBase64(contentStr);
 
       // Now update or create the file
       const response = await axios.put(
         `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${path}`,
         {
           message: 'Update booking configuration',
-          content: Buffer.from(JSON.stringify(content, null, 2)).toString('base64'),
+          content: contentBase64,
           sha: sha || undefined
         },
         {
@@ -70,6 +96,18 @@ export class GitHubService {
     } catch (error) {
       console.error('Error updating config file:', error);
       return false;
+    }
+  }
+
+  // Helper method for base64 encoding that works in browsers
+  private toBase64(str: string): string {
+    try {
+      return btoa(str);
+    } catch (e) {
+      // For non-ASCII characters
+      return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => 
+        String.fromCharCode(parseInt(p1, 16))
+      ));
     }
   }
 

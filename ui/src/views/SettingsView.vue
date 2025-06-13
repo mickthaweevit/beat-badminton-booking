@@ -124,6 +124,13 @@ const updateGitHubConfig = async () => {
         success: true,
         message: 'GitHub configuration updated successfully!'
       };
+      
+      // Clear the status message after 3 seconds
+      setTimeout(() => {
+        if (configUpdateStatus.value?.success) {
+          configUpdateStatus.value = null;
+        }
+      }, 3000);
     } else {
       configUpdateStatus.value = {
         success: false,
