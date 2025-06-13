@@ -61,20 +61,32 @@
         </div>
       </div>
       
-      <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" @click="saveBookingDefaults">
-        Save Defaults
-      </button>
+      <div class="flex space-x-4">
+        <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" @click="saveBookingDefaults">
+          Save Locally
+        </button>
+        
+        <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" @click="updateGitHubConfig">
+          Save to GitHub
+        </button>
+      </div>
+      
+      <div v-if="configUpdateStatus" class="mt-4" :class="configUpdateStatus.success ? 'text-green-600' : 'text-red-600'">
+        {{ configUpdateStatus.message }}
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import githubService from '../services/github';
 
 const repository = ref('');
 const token = ref('');
 const defaultTime = ref('18:00-19:00');
 const autobookDays = ref(['3']); // Default to Wednesday
+const configUpdateStatus = ref<{ success: boolean; message: string } | null>(null);
 
 const saveSettings = () => {
   // Save GitHub settings
@@ -87,7 +99,43 @@ const saveBookingDefaults = () => {
   // Save booking defaults
   localStorage.setItem('default_time', defaultTime.value);
   localStorage.setItem('autobook_days', JSON.stringify(autobookDays.value));
-  alert('Booking defaults saved!');
+  alert('Booking defaults saved locally!');
+};
+
+const updateGitHubConfig = async () => {
+  if (!githubService.isConfigured()) {
+    configUpdateStatus.value = {
+      success: false,
+      message: 'GitHub is not configured. Please set up your repository and token first.'
+    };
+    return;
+  }
+  
+  try {
+    // Create a commit to update the config file
+    const content = {
+      defaultTime: defaultTime.value,
+      autobookDays: autobookDays.value.map(Number)
+    };
+    
+    const response = await githubService.updateConfigFile('booking-config.json', content);
+    if (response) {
+      configUpdateStatus.value = {
+        success: true,
+        message: 'GitHub configuration updated successfully!'
+      };
+    } else {
+      configUpdateStatus.value = {
+        success: false,
+        message: 'Failed to update GitHub configuration.'
+      };
+    }
+  } catch (error: any) {
+    configUpdateStatus.value = {
+      success: false,
+      message: `Error: ${error.message}`
+    };
+  }
 };
 
 // Load saved settings

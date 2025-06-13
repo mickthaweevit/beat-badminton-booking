@@ -2,7 +2,7 @@ name: Badminton Court Booking
 
 on:
   schedule:
-    - cron: '0 17 * * 0-4'  # Weekdays at 17:00 UTC (00:00 Bangkok time)
+    - cron: '0 17 * * 1-5'  # Weekdays at 17:00 UTC (00:00 Bangkok time)
   repository_dispatch:
     types: [booking-trigger]
   workflow_dispatch:
@@ -12,8 +12,46 @@ on:
         required: false
         default: '18:00-19:00'
 
+permissions:
+  contents: write
+
 jobs:
+  check-config:
+    runs-on: ubuntu-latest
+    outputs:
+      should_book: ${{ steps.check-day.outputs.should_book }}
+      booking_time: ${{ steps.get-config.outputs.booking_time }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Get configuration
+        id: get-config
+        run: |
+          CONFIG=$(cat booking-config.json)
+          BOOKING_TIME=$(echo $CONFIG | jq -r '.defaultTime')
+          echo "booking_time=$BOOKING_TIME" >> $GITHUB_OUTPUT
+          echo "Config loaded: $CONFIG"
+          
+      - name: Check if today should be booked
+        id: check-day
+        run: |
+          DAY_OF_WEEK=$(date +%u)  # 1=Monday, 7=Sunday
+          AUTOBOOK_DAYS=$(cat booking-config.json | jq -r '.autobookDays | join(" ")')
+          echo "Today is day $DAY_OF_WEEK of the week"
+          echo "Configured days: $AUTOBOOK_DAYS"
+          
+          if [[ $AUTOBOOK_DAYS == *"$DAY_OF_WEEK"* ]]; then
+            echo "should_book=true" >> $GITHUB_OUTPUT
+            echo "Will book for today"
+          else
+            echo "should_book=false" >> $GITHUB_OUTPUT
+            echo "Will not book for today"
+          fi
+  
   book-court:
+    needs: check-config
+    if: ${{ needs.check-config.outputs.should_book == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'repository_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -34,5 +72,5 @@ jobs:
           CARD_ID: ${{ secrets.CARD_ID }}
           SLOT_ID: ${{ secrets.SLOT_ID }}
           CONTACT: ${{ secrets.CONTACT }}
-          BOOKING_TIME: ${{ github.event.client_payload.booking_time || github.event.inputs.booking_time || '18:00-19:00' }}
+          BOOKING_TIME: ${{ github.event.client_payload.booking_time || github.event.inputs.booking_time || needs.check-config.outputs.booking_time }}
         run: node booking-script.js
