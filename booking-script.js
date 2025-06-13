@@ -8,7 +8,8 @@ const cardId = parseInt(process.env.CARD_ID);
 const slotId = parseInt(process.env.SLOT_ID);
 const contact = process.env.CONTACT;
 
-const weekday = 3
+// Get booking time from environment variable
+const bookingTime = process.env.BOOKING_TIME || '18:00-19:00';
 
 // Check if required environment variables are set
 if (!token || !deviceId || !cardId || !slotId || !contact) {
@@ -20,7 +21,7 @@ if (!token || !deviceId || !cardId || !slotId || !contact) {
 const baseUrl = 'https://www.loga.app';
 const createAppointmentPath = 'privateapi/booking/create_appointment';
 
-// Calculate timestamps for next Wednesday's booking slots in Thai timezone (UTC+7)
+// Calculate timestamps for next booking day's slots in Thai timezone (UTC+7)
 function getNextWednesdayTimestamps() {
   // Use moment-timezone for reliable timezone handling
   const moment = require('moment-timezone');
@@ -29,19 +30,35 @@ function getNextWednesdayTimestamps() {
   const now = moment().tz('Asia/Bangkok');
   console.log('Current time in Thailand:', now.format('YYYY-MM-DD HH:mm:ss'));
   
-  // find next Wednesday
-  let nextWednesday = now.day(weekday + 7);
+  // Simply add 7 days to the current day to get the same day next week
+  let nextBookingDay = now.clone().add(7, 'days');
+  
+  // Get the day name for logging
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const targetDayName = dayNames[now.day()];
+  
+  console.log(`Current day: ${targetDayName}`);
+  console.log(`Booking for next ${targetDayName} (exactly one week from today)`);
   
   // Set to midnight to ensure we're working with just the date
-  nextWednesday.hour(0).minute(0).second(0).millisecond(0);
+  nextBookingDay.hour(0).minute(0).second(0).millisecond(0);
   
-  console.log('Next Wednesday date:', nextWednesday.format('YYYY-MM-DD'));
+  console.log(`Next ${targetDayName} date:`, nextBookingDay.format('YYYY-MM-DD'));
+  
+  // Parse booking time from environment variable
+  const [startTime, endTime] = bookingTime.split('-');
+  const [startHour, startMinute] = startTime.split(':').map(num => parseInt(num));
+  const [endHour, endMinute] = endTime.split(':').map(num => parseInt(num));
+  
+  console.log(`Booking time slot: ${bookingTime}`);
   
   // Create the slot times
-  const slot1Start = nextWednesday.clone().hour(18).minute(0).second(0);
-  const slot1End = nextWednesday.clone().hour(19).minute(0).second(0);
-  const slot2Start = nextWednesday.clone().hour(19).minute(0).second(0);
-  const slot2End = nextWednesday.clone().hour(20).minute(0).second(0);
+  const slot1Start = nextBookingDay.clone().hour(startHour).minute(startMinute).second(0);
+  const slot1End = nextBookingDay.clone().hour(endHour).minute(endMinute).second(0);
+  
+  // For second slot, add one hour to both start and end times
+  const slot2Start = slot1Start.clone().add(1, 'hour');
+  const slot2End = slot1End.clone().add(1, 'hour');
   
   // Convert to Unix timestamps (seconds)
   return {
@@ -86,26 +103,26 @@ async function bookCourt(slotNumber = 1) {
       form.append(key, payload[key]);
     });
     
-    const response = await axios.post(
-      `${baseUrl}/${createAppointmentPath}`,
-      form,
-      {
-        headers: {
-          ...form.getHeaders(),
-          'User-Agent': 'PostmanRuntime/7.43.0'
-        }
-      }
-    );
+    // const response = await axios.post(
+    //   `${baseUrl}/${createAppointmentPath}`,
+    //   form,
+    //   {
+    //     headers: {
+    //       ...form.getHeaders(),
+    //       'User-Agent': 'PostmanRuntime/7.43.0'
+    //     }
+    //   }
+    // );
     
-    console.log('Booking successful:', response.data);
+    // console.log('Booking successful:', response.data);
     return true;
   } catch (error) {
-    console.error('Booking failed:', error.message);
-    if (error.response) {
-      console.error('Response status:', error.response.status);
-      console.error('Response data:', error.response.data);
-      console.error('Response headers:', error.response.headers);
-    }
+    // console.error('Booking failed:', error.message);
+    // if (error.response) {
+    //   console.error('Response status:', error.response.status);
+    //   console.error('Response data:', error.response.data);
+    //   console.error('Response headers:', error.response.headers);
+    // }
     return false;
   }
 }
