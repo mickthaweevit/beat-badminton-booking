@@ -30,7 +30,7 @@ function getNextWednesdayTimestamps() {
   console.log('Current time in Thailand:', now.format('YYYY-MM-DD HH:mm:ss'));
   
   // find next Wednesday
-  nextWednesday = now.day(weekday + 7);
+  let nextWednesday = now.day(weekday + 7);
   
   // Set to midnight to ensure we're working with just the date
   nextWednesday.hour(0).minute(0).second(0).millisecond(0);
@@ -86,26 +86,26 @@ async function bookCourt(slotNumber = 1) {
       form.append(key, payload[key]);
     });
     
-    // const response = await axios.post(
-    //   `${baseUrl}/${createAppointmentPath}`,
-    //   form,
-    //   {
-    //     headers: {
-    //       ...form.getHeaders(),
-    //       'User-Agent': 'PostmanRuntime/7.43.0'
-    //     }
-    //   }
-    // );
+    const response = await axios.post(
+      `${baseUrl}/${createAppointmentPath}`,
+      form,
+      {
+        headers: {
+          ...form.getHeaders(),
+          'User-Agent': 'PostmanRuntime/7.43.0'
+        }
+      }
+    );
     
-    // console.log('Booking successful:', response.data);
+    console.log('Booking successful:', response.data);
     return true;
   } catch (error) {
-    // console.error('Booking failed:', error.message);
-    // if (error.response) {
-    //   console.error('Response status:', error.response.status);
-    //   console.error('Response data:', error.response.data);
-    //   console.error('Response headers:', error.response.headers);
-    // }
+    console.error('Booking failed:', error.message);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      console.error('Response headers:', error.response.headers);
+    }
     return false;
   }
 }
@@ -119,11 +119,11 @@ async function bookBothSlots() {
   console.log('First slot booking ' + (slot1Success ? 'successful' : 'failed'));
   
   // Wait 5 seconds between bookings
-  // await new Promise(resolve => setTimeout(resolve, 5000));
+  await new Promise(resolve => setTimeout(resolve, 5000));
   
   // Book second slot (19:00-20:00)
-  // const slot2Success = await bookCourt(2);
-  // console.log('Second slot booking ' + (slot2Success ? 'successful' : 'failed'));
+  const slot2Success = await bookCourt(2);
+  console.log('Second slot booking ' + (slot2Success ? 'successful' : 'failed'));
   
   console.log('Booking process completed');
 }

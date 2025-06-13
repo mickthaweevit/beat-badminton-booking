@@ -5,6 +5,9 @@ package-lock.json
 # Environment variables - IMPORTANT: Don't commit this file!
 .env
 
+# File with sensitive information
+badminton-booking-beat-discovery-data.js
+
 # Logs
 logs
 *.log
