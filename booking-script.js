@@ -8,7 +8,7 @@ const cardId = parseInt(process.env.CARD_ID);
 const slotId = parseInt(process.env.SLOT_ID);
 const contact = process.env.CONTACT;
 
-const weekday = 5
+const weekday = 3
 
 // Check if required environment variables are set
 if (!token || !deviceId || !cardId || !slotId || !contact) {
@@ -25,20 +25,12 @@ function getNextWednesdayTimestamps() {
   // Use moment-timezone for reliable timezone handling
   const moment = require('moment-timezone');
   
-  // Get current time in Thai timezone
+  // Get current time in Thai timezone (trigger on Wednesday)
   const now = moment().tz('Asia/Bangkok');
   console.log('Current time in Thailand:', now.format('YYYY-MM-DD HH:mm:ss'));
   
-  // Find the next Wednesday
-  let nextWednesday = moment().tz('Asia/Bangkok');
-  
-  // If today is not Wednesday or it's Wednesday but after 18:00, find next Wednesday
-  if (now.day() !== weekday || (now.day() === weekday && now.hour() >= 18)) {
-    nextWednesday = now.day(weekday + 7);
-  } else {
-    // Today is Wednesday and before 18:00
-    nextWednesday = now;
-  }
+  // find next Wednesday
+  nextWednesday = now.day(weekday + 7);
   
   // Set to midnight to ensure we're working with just the date
   nextWednesday.hour(0).minute(0).second(0).millisecond(0);
@@ -94,26 +86,26 @@ async function bookCourt(slotNumber = 1) {
       form.append(key, payload[key]);
     });
     
-    const response = await axios.post(
-      `${baseUrl}/${createAppointmentPath}`,
-      form,
-      {
-        headers: {
-          ...form.getHeaders(),
-          'User-Agent': 'PostmanRuntime/7.43.0'
-        }
-      }
-    );
+    // const response = await axios.post(
+    //   `${baseUrl}/${createAppointmentPath}`,
+    //   form,
+    //   {
+    //     headers: {
+    //       ...form.getHeaders(),
+    //       'User-Agent': 'PostmanRuntime/7.43.0'
+    //     }
+    //   }
+    // );
     
-    console.log('Booking successful:', response.data);
+    // console.log('Booking successful:', response.data);
     return true;
   } catch (error) {
-    console.error('Booking failed:', error.message);
-    if (error.response) {
-      console.error('Response status:', error.response.status);
-      console.error('Response data:', error.response.data);
-      console.error('Response headers:', error.response.headers);
-    }
+    // console.error('Booking failed:', error.message);
+    // if (error.response) {
+    //   console.error('Response status:', error.response.status);
+    //   console.error('Response data:', error.response.data);
+    //   console.error('Response headers:', error.response.headers);
+    // }
     return false;
   }
 }
