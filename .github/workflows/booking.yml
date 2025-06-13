@@ -2,8 +2,15 @@ name: Badminton Court Booking
 
 on:
   schedule:
-    - cron: '0 17 * * 2'  # Every Tuesday 17:00 UTC (Wednesday 00:00 Bangkok time)
-  workflow_dispatch:  # Allows manual triggering
+    - cron: '0 17 * * 1-5'  # Weekdays at 17:00 UTC (00:00 Bangkok time)
+  repository_dispatch:
+    types: [booking-trigger]
+  workflow_dispatch:
+    inputs:
+      booking_time:
+        description: 'Time slot to book (format: HH:MM-HH:MM)'
+        required: false
+        default: '18:00-19:00'
 
 jobs:
   book-court:
@@ -27,4 +34,5 @@ jobs:
           CARD_ID: ${{ secrets.CARD_ID }}
           SLOT_ID: ${{ secrets.SLOT_ID }}
           CONTACT: ${{ secrets.CONTACT }}
+          BOOKING_TIME: ${{ github.event.client_payload.booking_time || github.event.inputs.booking_time || '18:00-19:00' }}
         run: node booking-script.js
