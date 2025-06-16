@@ -36,9 +36,9 @@ jobs:
       - name: Check if today should be booked
         id: check-day
         run: |
-          DAY_OF_WEEK=$(date +%u)  # 1=Monday, 7=Sunday
+          DAY_OF_WEEK=$(TZ="Asia/Bangkok" date +%u)  # Get day of week in Bangkok time
           AUTOBOOK_DAYS=$(cat booking-config.json | jq -r '.autobookDays | join(" ")')
-          echo "Today is day $DAY_OF_WEEK of the week"
+          echo "Today is day $DAY_OF_WEEK of the week in Bangkok time"
           echo "Configured days: $AUTOBOOK_DAYS"
           
           if [[ $AUTOBOOK_DAYS == *"$DAY_OF_WEEK"* ]]; then

@@ -1,12 +1,20 @@
 # Badminton Court Booking Automation
 
-This project automatically books badminton courts every Wednesday at 18:00-19:00 and 19:00-20:00 using GitHub Actions.
+This project automatically books badminton courts exactly one week in advance of your selected days using GitHub Actions.
 
 ## How it works
 
-1. GitHub Actions runs the workflow every Wednesday at 17:00 UTC (which is Thursday 00:00 Bangkok time)
-2. The script automatically calculates the timestamps for next Wednesday's booking slots
-3. The workflow books both time slots (18:00-19:00 and 19:00-20:00)
+1. GitHub Actions runs the workflow on your configured days at 17:00 UTC (which is 00:00 Bangkok time)
+2. The script automatically calculates the timestamps for next week's booking slots (exactly 7 days from the current day)
+3. The workflow books the time slots you've configured in the settings
+
+## Key Features
+
+- **Automatic Booking**: Books courts exactly one week in advance
+- **Configurable Days**: Choose which weekdays to book (Monday-Friday)
+- **Configurable Times**: Select default booking time slots
+- **GitHub Integration**: Uses GitHub Actions for reliable scheduling
+- **Web UI**: Simple interface to manage your booking settings
 
 ## Local Setup
 
@@ -27,9 +35,11 @@ This project automatically books badminton courts every Wednesday at 18:00-19:00
    ```
    npm install
    ```
-5. Run the script locally:
+5. For UI development:
    ```
-   npm run book
+   cd ui
+   npm install
+   npm run dev
    ```
 
 ## GitHub Setup
@@ -58,11 +68,10 @@ This project automatically books badminton courts every Wednesday at 18:00-19:00
    - Click on the "Actions" tab
    - Click "I understand my workflows, go ahead and enable them"
 
-4. Test the workflow:
-   - Go to the "Actions" tab
-   - Select "Badminton Court Booking" workflow
-   - Click "Run workflow" > "Run workflow"
-   - Check the logs to ensure it's working correctly
+4. Configure your settings in the UI:
+   - Enter your GitHub repository name and token
+   - Select your preferred booking days and time
+   - Save settings both locally and to GitHub
 
 ## Important Notes
 
@@ -70,3 +79,4 @@ This project automatically books badminton courts every Wednesday at 18:00-19:00
 - GitHub may delay scheduled workflows by up to 15 minutes during periods of high loads
 - For testing, use the manual trigger option ("workflow_dispatch")
 - Never commit your `.env` file to the repository
+- The GitHub token needs `repo` and `workflow` permissions
