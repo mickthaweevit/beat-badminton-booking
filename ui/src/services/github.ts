@@ -26,6 +26,39 @@ export class GitHubService {
     return !!this.token && !!this.owner && !!this.repo;
   }
   
+  async getFileContent(path: string): Promise<any> {
+    if (!this.isConfigured()) {
+      throw new Error('GitHub service is not configured');
+    }
+
+    try {
+      const response = await axios.get(
+        `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${path}`,
+        {
+          headers: {
+            'Accept': 'application/vnd.github.v3+json',
+            'Authorization': `token ${this.token}`
+          }
+        }
+      );
+      
+      // Decode the content from base64
+      if (response.data.content) {
+        const decoded = atob(response.data.content.replace(/\\n/g, ''));
+        try {
+          return JSON.parse(decoded);
+        } catch (e) {
+          console.error('Error parsing JSON from GitHub file:', e);
+          return null;
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching file from GitHub:', error);
+      return null;
+    }
+  }
+  
   async updateConfigFile(path: string, content: any): Promise<boolean> {
     if (!this.isConfigured()) {
       throw new Error('GitHub service is not configured');
@@ -108,36 +141,6 @@ export class GitHubService {
       return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => 
         String.fromCharCode(parseInt(p1, 16))
       ));
-    }
-  }
-
-  async triggerWorkflow(bookingTime: string): Promise<boolean> {
-    if (!this.isConfigured()) {
-      throw new Error('GitHub service is not configured');
-    }
-
-    try {
-      const response = await axios.post(
-        `https://api.github.com/repos/${this.owner}/${this.repo}/dispatches`,
-        {
-          event_type: 'booking-trigger',
-          client_payload: {
-            booking_time: bookingTime
-          }
-        },
-        {
-          headers: {
-            'Accept': 'application/vnd.github.v3+json',
-            'Authorization': `token ${this.token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      
-      return response.status === 204;
-    } catch (error) {
-      console.error('Error triggering workflow:', error);
-      return false;
     }
   }
 

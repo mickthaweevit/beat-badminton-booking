@@ -3,10 +3,6 @@
     <header class="bg-blue-600 text-white p-4 shadow-md">
       <div class="container mx-auto flex justify-between items-center">
         <h1 class="text-xl font-bold">Badminton Booking</h1>
-        <nav>
-          <router-link to="/" class="px-3 py-2 hover:bg-blue-700 rounded">Home</router-link>
-          <router-link to="/settings" class="px-3 py-2 hover:bg-blue-700 rounded">Settings</router-link>
-        </nav>
       </div>
     </header>
     
