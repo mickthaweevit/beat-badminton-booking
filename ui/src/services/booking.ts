@@ -1,56 +1,5 @@
 import axios from 'axios';
 
-// Mock data based on the example response
-const mockBookingData = {
-  "data": [
-    {
-      "appointment_id": 190616,
-      "fname": "Mick",
-      "lname": "Thaweevit",
-      "start_time": 1748430000,
-      "end_time": 1748433600,
-      "amount": 1,
-      "amount_unit": " Court",
-      "branch_name": "Badminton | แบดมินตัน",
-      "activity_name": "Badminton Court [Evening] Promo",
-      "price": 0,
-      "currency": "THB",
-      "status": "A",
-      "status_name": "Approved"
-    },
-    {
-      "appointment_id": 192176,
-      "fname": "Mick",
-      "lname": "Thaweevit",
-      "start_time": 1749034800,
-      "end_time": 1749038400,
-      "amount": 1,
-      "amount_unit": "Court",
-      "branch_name": "Badminton | แบดมินตัน",
-      "activity_name": "Badminton Court Evening",
-      "price": 290,
-      "currency": "THB",
-      "status": "A",
-      "status_name": "Approved"
-    },
-    {
-      "appointment_id": 197367,
-      "fname": "Mick",
-      "lname": "Thaweevit",
-      "start_time": 1750244400,
-      "end_time": 1750248000,
-      "amount": 1,
-      "amount_unit": "Court",
-      "branch_name": "Badminton | แบดมินตัน",
-      "activity_name": "Badminton Court Evening",
-      "price": 290,
-      "currency": "THB",
-      "status": "C",
-      "status_name": "Cancelled"
-    }
-  ]
-};
-
 export interface Booking {
   appointment_id: number;
   fname: string;
