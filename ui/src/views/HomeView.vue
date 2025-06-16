@@ -174,7 +174,7 @@ import githubService from '../services/github';
 // Check if GitHub is configured
 const isConfigured = computed(() => githubService.isConfigured());
 
-// Load bookings on component mount
+// Load settings on component mount
 onMounted(() => {
   // Load saved settings when component mounts
   loadSavedSettings();
