@@ -285,7 +285,7 @@ const fetchGitHubConfig = async () => {
       
       if (configContent.autobookDays && Array.isArray(configContent.autobookDays)) {
         // Convert numbers to strings for checkbox binding
-        autobookDays.value = configContent.autobookDays.map(day => String(day));
+        autobookDays.value = configContent.autobookDays.map((day: number|string) => String(day));
       }
     }
   } catch (error: any) {
