@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia';
-import githubService from '../services/github';
 
 interface BookingState {
   isLoading: boolean;
