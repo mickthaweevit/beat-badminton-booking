@@ -22,6 +22,13 @@ jobs:
         with:
           node-version: '16'
           
+      - name: Create .env file with secrets
+        run: |
+          cd ui
+          echo "VITE_TOKEN=${{ secrets.VITE_TOKEN }}" > .env
+          echo "VITE_DEVICE_ID=${{ secrets.VITE_DEVICE_ID }}" >> .env
+          echo "VITE_CARD_ID=${{ secrets.VITE_CARD_ID }}" >> .env
+          
       - name: Install Dependencies
         run: |
           cd ui
