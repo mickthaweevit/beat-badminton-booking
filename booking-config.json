@@ -16,9 +16,9 @@
       "courts": 2
     },
     {
-      "enabled": false,
+      "enabled": true,
       "time": "19:00-20:00",
-      "courts": 1
+      "courts": 2
     },
     {
       "enabled": false,
