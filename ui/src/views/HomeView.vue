@@ -214,11 +214,11 @@ const token = ref('');
 const defaultTime = ref('18:00-19:00');
 const autobookDays = ref(['3']); // Default to Wednesday
 const bookingSlots = ref([
-  { enabled: true, time: '17:00-18:00', courts: 1 },
-  { enabled: true, time: '18:00-19:00', courts: 1 },
-  { enabled: true, time: '19:00-20:00', courts: 1 },
-  { enabled: true, time: '20:00-21:00', courts: 1 },
-  { enabled: true, time: '21:00-22:00', courts: 1 }
+  { enabled: false, time: '17:00-18:00', courts: 1 },
+  { enabled: false, time: '18:00-19:00', courts: 1 },
+  { enabled: false, time: '19:00-20:00', courts: 1 },
+  { enabled: false, time: '20:00-21:00', courts: 1 },
+  { enabled: false, time: '21:00-22:00', courts: 1 }
 ]);
 
 // Function to get the time label for each slot
