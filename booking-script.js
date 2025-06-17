@@ -143,39 +143,38 @@ async function bookCourt(slotKey) {
       form.append(key, payload[key]);
     });
     
-    // const response = await axios.post(
-    //   `${baseUrl}/${createAppointmentPath}`,
-    //   form,
-    //   {
-    //     headers: {
-    //       ...form.getHeaders(),
-    //       'User-Agent': 'PostmanRuntime/7.43.0'
-    //     },
-    //     timeout: 120000 // 2 minute timeout
-    //   }
-    // );
+    const response = await axios.post(
+      `${baseUrl}/${createAppointmentPath}`,
+      form,
+      {
+        headers: {
+          ...form.getHeaders(),
+          'User-Agent': 'PostmanRuntime/7.43.0'
+        },
+        timeout: 120000 // 2 minute timeout
+      }
+    );
     
-    // if (response.status === 200) {
-    //   console.log(`[${logTime()}] Booking successful:`, response.data);
-    //   return true;
-    // } else {
-    //   console.error(`[${logTime()}] Booking failed with status:`, response.status);
-    //   console.error(`[${logTime()}] Response data:`, response.data);
-    //   return false;
-    // }
-    return true
+    if (response.status === 200) {
+      console.log(`[${logTime()}] Booking successful:`, response.data);
+      return true;
+    } else {
+      console.error(`[${logTime()}] Booking failed with status:`, response.status);
+      console.error(`[${logTime()}] Response data:`, response.data);
+      return false;
+    }
   } catch (error) {
-    // if (error.code === 'ECONNABORTED') {
-    //   console.error(`[${logTime()}] Booking request timed out`);
-    // } else if (error.code === 'ENOTFOUND') {
-    //   console.error(`[${logTime()}] Network error: Server not found`);
-    // } else if (error.response) {
-    //   console.error(`[${logTime()}] Server error:`, error.message);
-    //   console.error(`[${logTime()}] Response status:`, error.response.status);
-    //   console.error(`[${logTime()}] Response data:`, error.response.data);
-    // } else {
-    //   console.error(`[${logTime()}] Booking failed:`, error.message);
-    // }
+    if (error.code === 'ECONNABORTED') {
+      console.error(`[${logTime()}] Booking request timed out`);
+    } else if (error.code === 'ENOTFOUND') {
+      console.error(`[${logTime()}] Network error: Server not found`);
+    } else if (error.response) {
+      console.error(`[${logTime()}] Server error:`, error.message);
+      console.error(`[${logTime()}] Response status:`, error.response.status);
+      console.error(`[${logTime()}] Response data:`, error.response.data);
+    } else {
+      console.error(`[${logTime()}] Booking failed:`, error.message);
+    }
     return false;
   }
 }
