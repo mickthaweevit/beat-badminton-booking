@@ -1,78 +1,58 @@
 <template>
-  <div class="bookings">
-    <h1 class="text-2xl font-bold mb-6">My Bookings</h1>
-    
-    <div v-if="isLoading" class="bg-white p-6 rounded-lg shadow-md mb-6">
-      <p class="text-gray-700">Loading bookings...</p>
-    </div>
-    
-    <div v-else-if="error" class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-      <div class="flex">
-        <div class="flex-shrink-0">
-          <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-          </svg>
-        </div>
-        <div class="ml-3">
-          <p class="text-sm text-yellow-700">
-            {{ error }}
-          </p>
-        </div>
-      </div>
-    </div>
-    
-    <div v-else-if="bookings.length === 0" class="bg-white p-6 rounded-lg shadow-md mb-6">
-      <p class="text-gray-700">No bookings found.</p>
-    </div>
-    
-    <div v-else class="grid grid-cols-1 gap-6">
-      <div v-for="booking in sortedBookings" :key="booking.appointment_id" 
-        class="bg-white p-6 rounded-lg shadow-md"
-        :class="{'border-l-4 border-red-400': booking.status === 'C'}">
-        
-        <div class="flex justify-between items-start mb-4">
-          <h2 class="text-xl font-semibold">{{ booking.activity_name }}</h2>
-          <span 
-            :class="{
-              'bg-green-100 text-green-800': booking.status === 'A',
-              'bg-red-100 text-red-800': booking.status === 'C'
-            }"
-            class="px-2 py-1 rounded text-sm"
-          >
-            {{ booking.status_name }}
-          </span>
-        </div>
-        
-        <div class="mb-4">
-          <p class="text-gray-700">
-            <span class="font-semibold">Date:</span> {{ formatDate(booking.start_time) }}
-          </p>
-          <p class="text-gray-700">
-            <span class="font-semibold">Time:</span> {{ getTimeRange(booking.start_time, booking.end_time) }}
-          </p>
-          <p class="text-gray-700">
-            <span class="font-semibold">Location:</span> {{ booking.branch_name }}
-          </p>
-        </div>
-        
-        <div class="flex justify-between items-center">
-          <p class="text-gray-700">
-            <span class="font-semibold">Amount:</span> {{ booking.amount }} {{ booking.amount_unit }}
-          </p>
-          <p class="text-gray-700">
-            <span class="font-semibold">Price:</span> {{ booking.price }} {{ booking.currency }}
-          </p>
-        </div>
-      </div>
-    </div>
-    
-    <div class="mt-6 flex justify-center">
+  <div class="bookings max-w-4xl mx-auto">
+    <div class="flex justify-between items-center mb-3">
+      <h1 class="text-xl font-bold">My Bookings</h1>
       <button 
-        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        class="bg-blue-600 text-white px-2 py-1 rounded text-sm hover:bg-blue-700"
         @click="fetchBookings"
       >
-        Refresh Bookings
+        {{ isLoading ? 'Loading...' : 'Refresh' }}
       </button>
+    </div>
+    
+    <div v-if="error" class="bg-yellow-50 border-l-4 border-yellow-400 p-2 mb-3 text-sm">
+      {{ error }}
+    </div>
+    
+    <div v-if="bookings.length === 0 && !isLoading" class="bg-white p-3 rounded shadow-sm text-sm text-center text-gray-500">
+      No bookings found
+    </div>
+    
+    <div v-else class="space-y-4">
+      <div v-for="group in groupedBookings" :key="group.date" class="booking-group">
+        <div class="flex items-center mb-2">
+          <div class="h-px bg-gray-200 flex-grow mr-3"></div>
+          <div class="text-xs font-medium text-gray-500">{{ group.formattedDate }}</div>
+          <div class="h-px bg-gray-200 flex-grow ml-3"></div>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div v-for="booking in group.bookings" :key="booking.appointment_id" 
+            class="bg-white p-2 rounded shadow-sm text-sm"
+            :class="{'border-l-4 border-red-400': booking.status === 'C'}">
+            
+            <div class="flex justify-between items-center mb-1">
+              <div class="font-medium">{{ booking.activity_name }}</div>
+              <span 
+                :class="{
+                  'bg-green-100 text-green-800': booking.status === 'A',
+                  'bg-red-100 text-red-800': booking.status === 'C'
+                }"
+                class="px-1 py-0.5 rounded text-xs"
+              >
+                {{ booking.status_name }}
+              </span>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-1 text-xs">
+              <div><span class="text-gray-500">Date:</span> {{ formatDate(booking.start_time) }}</div>
+              <div><span class="text-gray-500">Time:</span> {{ getTimeRange(booking.start_time, booking.end_time) }}</div>
+              <div><span class="text-gray-500">Courts:</span> {{ booking.amount }} {{ booking.amount_unit }}</div>
+              <div><span class="text-gray-500">Location:</span> {{ booking.branch_name }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -85,9 +65,32 @@ const bookings = ref<Booking[]>([]);
 const isLoading = ref(true);
 const error = ref<string | null>(null);
 
-// Computed property to sort bookings by last_update in descending order (newest first)
-const sortedBookings = computed(() => {
-  return [...bookings.value].sort((a, b) => b.last_update - a.last_update);
+// Group bookings by date (last_update)
+const groupedBookings = computed(() => {
+  // First sort bookings by last_update in ascending order
+  const sorted = [...bookings.value].sort((a, b) => b.last_update - a.last_update);
+  
+  // Group by date (ignoring time)
+  const groups: Record<string, Booking[]> = {};
+  
+  sorted.forEach(booking => {
+    // Get date string as key (YYYY-MM-DD)
+    const date = new Date(booking.last_update * 1000);
+    const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    
+    if (!groups[dateKey]) {
+      groups[dateKey] = [];
+    }
+    
+    groups[dateKey].push(booking);
+  });
+  
+  // Convert to array of groups for v-for
+  return Object.entries(groups).map(([date, bookings]) => ({
+    date,
+    formattedDate: formatDate(bookings[0].last_update),
+    bookings
+  }));
 });
 
 const fetchBookings = async () => {
