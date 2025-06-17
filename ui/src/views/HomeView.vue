@@ -95,6 +95,29 @@
         </div>
       </div>
       
+      <div class="mb-4">
+        <label class="block text-gray-700 mb-2">Time Slots Configuration</label>
+        <div class="bg-gray-50 p-4 rounded border">
+          <div class="flex flex-col gap-3">
+            <div v-for="(slot, index) in bookingSlots" :key="index" class="flex items-center justify-between border-b pb-3 last:border-b-0 last:pb-0">
+              <div class="flex items-center">
+                <input type="checkbox" class="form-checkbox" v-model="slot.enabled" />
+                <span class="ml-2 font-medium">{{ getTimeLabel(index) }}</span>
+              </div>
+              
+              <div>
+                <label class="inline-block text-sm text-gray-600 mr-2">Courts:</label>
+                <select class="p-2 border rounded" v-model="slot.courts">
+                  <option :value="1">1</option>
+                  <option :value="2">2</option>
+                  <option :value="3">3</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <div class="flex">
         <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" @click="updateGitHubConfig">
           Save to GitHub
@@ -190,6 +213,25 @@ const repository = ref('');
 const token = ref('');
 const defaultTime = ref('18:00-19:00');
 const autobookDays = ref(['3']); // Default to Wednesday
+const bookingSlots = ref([
+  { enabled: true, time: '17:00-18:00', courts: 1 },
+  { enabled: true, time: '18:00-19:00', courts: 1 },
+  { enabled: true, time: '19:00-20:00', courts: 1 },
+  { enabled: true, time: '20:00-21:00', courts: 1 },
+  { enabled: true, time: '21:00-22:00', courts: 1 }
+]);
+
+// Function to get the time label for each slot
+const getTimeLabel = (index: number): string => {
+  const timeSlots = [
+    '17:00 - 18:00',
+    '18:00 - 19:00',
+    '19:00 - 20:00',
+    '20:00 - 21:00',
+    '21:00 - 22:00'
+  ];
+  return timeSlots[index] || `Slot ${index + 1}`;
+};
 const configUpdateStatus = ref<{ success: boolean; message: string } | null>(null);
 const workflowRuns = ref<any[]>([]);
 const isLoadingWorkflows = ref(false);
@@ -222,7 +264,8 @@ const updateGitHubConfig = async () => {
     // Create a commit to update the config file
     const content = {
       defaultTime: defaultTime.value,
-      autobookDays: autobookDays.value.map(Number)
+      autobookDays: autobookDays.value.map(Number),
+      slots: bookingSlots.value
     };
     
     const response = await githubService.updateConfigFile('booking-config.json', content);
@@ -286,6 +329,38 @@ const fetchGitHubConfig = async () => {
       if (configContent.autobookDays && Array.isArray(configContent.autobookDays)) {
         // Convert numbers to strings for checkbox binding
         autobookDays.value = configContent.autobookDays.map((day: number|string) => String(day));
+      }
+      
+      // Load slots configuration if available
+      if (configContent.slots && Array.isArray(configContent.slots)) {
+        // Make sure we have all required slots
+        const defaultSlots = [
+          { enabled: true, time: '17:00-18:00', courts: 1 },
+          { enabled: true, time: '18:00-19:00', courts: 1 },
+          { enabled: true, time: '19:00-20:00', courts: 1 },
+          { enabled: true, time: '20:00-21:00', courts: 1 },
+          { enabled: true, time: '21:00-22:00', courts: 1 }
+        ];
+        
+        // Use the slots from config, or default if not available
+        bookingSlots.value = configContent.slots.map((slot: any, index: number) => {
+          // Ensure all required properties exist
+          return {
+            enabled: slot.enabled !== undefined ? slot.enabled : true,
+            time: slot.time || defaultSlots[index]?.time || `${17 + index}:00-${18 + index}:00`,
+            courts: slot.courts || 1
+          };
+        });
+        
+        // Ensure we have all 5 slots
+        while (bookingSlots.value.length < 5) {
+          const index = bookingSlots.value.length;
+          bookingSlots.value.push(defaultSlots[index] || { 
+            enabled: true, 
+            time: `${17 + index}:00-${18 + index}:00`, 
+            courts: 1 
+          });
+        }
       }
     }
   } catch (error: any) {
