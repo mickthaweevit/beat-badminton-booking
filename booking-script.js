@@ -12,9 +12,6 @@ const contact = process.env.CONTACT;
 const fs = require('fs');
 const config = JSON.parse(fs.readFileSync('booking-config.json', 'utf8'));
 
-// Get booking time from environment variable or config
-const bookingTime = process.env.BOOKING_TIME || config.defaultTime;
-
 // Check if required environment variables are set
 if (!token || !deviceId || !cardId || !slotId || !contact) {
   console.error('Error: Missing required environment variables.');
@@ -76,32 +73,8 @@ function getNextBookingTimestamps() {
       }
     });
   } else {
-    // Fallback to the old behavior with two slots if no config
-    console.log(`Using default booking time: ${bookingTime}`);
-    
-    const [startTime, endTime] = bookingTime.split('-');
-    const [startHour, startMinute] = startTime.split(':').map(num => parseInt(num));
-    const [endHour, endMinute] = endTime.split(':').map(num => parseInt(num));
-    
-    // Create the slot times
-    const slot1Start = nextBookingDay.clone().hour(startHour).minute(startMinute).second(0);
-    const slot1End = nextBookingDay.clone().hour(endHour).minute(endMinute).second(0);
-    
-    // For second slot, add one hour to both start and end times
-    const slot2Start = slot1Start.clone().add(1, 'hour');
-    const slot2End = slot1End.clone().add(1, 'hour');
-    
-    timestamps.slot1 = {
-      start: slot1Start.unix(),
-      end: slot1End.unix(),
-      courts: 1
-    };
-    
-    timestamps.slot2 = {
-      start: slot2Start.unix(),
-      end: slot2End.unix(),
-      courts: 1
-    };
+    // No slots configured or no enabled slots
+    console.log('No slot configuration found or no slots are enabled.');
   }
   
   return timestamps;
@@ -185,6 +158,13 @@ async function bookAllSlots() {
   
   const slots = getNextBookingTimestamps();
   const slotKeys = Object.keys(slots);
+  
+  if (slotKeys.length === 0) {
+    console.log('No enabled slots found for today. Skipping booking process.');
+    return;
+  }
+  
+  console.log(`Found ${slotKeys.length} enabled slot(s) to book.`);
   const results = {};
   
   for (let i = 0; i < slotKeys.length; i++) {
@@ -217,10 +197,12 @@ async function bookAllSlots() {
   }
   
   // Print summary
-  console.log('\nBooking Summary:');
-  Object.keys(results).forEach((slotKey, index) => {
-    console.log(`Slot ${index + 1}: ${results[slotKey] ? 'SUCCESS' : 'FAILED'}`);
-  });
+  if (Object.keys(results).length > 0) {
+    console.log('\nBooking Summary:');
+    Object.keys(results).forEach((slotKey, index) => {
+      console.log(`Slot ${index + 1}: ${results[slotKey] ? 'SUCCESS' : 'FAILED'}`);
+    });
+  }
   
   console.log('\nBooking process completed');
 }

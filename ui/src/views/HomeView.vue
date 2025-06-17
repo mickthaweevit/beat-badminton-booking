@@ -53,20 +53,11 @@
       
       <div v-if="isConfigured" class="mb-4">
         <button 
-          class="mb-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           @click="fetchGitHubConfig"
         >
           Load Settings from GitHub
         </button>
-      </div>
-      
-      <div class="mb-4">
-        <label class="block text-gray-700 mb-2">Default Booking Time</label>
-        <select class="w-full p-2 border rounded" v-model="defaultTime">
-          <option value="18:00-19:00">18:00 - 19:00</option>
-          <option value="19:00-20:00">19:00 - 20:00</option>
-          <option value="20:00-21:00">20:00 - 21:00</option>
-        </select>
       </div>
       
       <div class="mb-4">
@@ -211,7 +202,6 @@ onMounted(() => {
 
 const repository = ref('');
 const token = ref('');
-const defaultTime = ref('18:00-19:00');
 const autobookDays = ref(['3']); // Default to Wednesday
 const bookingSlots = ref([
   { enabled: false, time: '17:00-18:00', courts: 1 },
@@ -278,7 +268,6 @@ const updateGitHubConfig = async () => {
   try {
     // Create a commit to update the config file
     const content = {
-      defaultTime: defaultTime.value,
       autobookDays: autobookDays.value.map(Number),
       slots: bookingSlots.value
     };
@@ -337,9 +326,6 @@ const fetchGitHubConfig = async () => {
       console.log('GitHub config:', configContent);
       
       // Update local state with GitHub config
-      if (configContent.defaultTime) {
-        defaultTime.value = configContent.defaultTime;
-      }
       
       if (configContent.autobookDays && Array.isArray(configContent.autobookDays)) {
         // Convert numbers to strings for checkbox binding
@@ -391,15 +377,7 @@ const loadSavedSettings = () => {
   if (localStorage.getItem('github_token')) {
     token.value = localStorage.getItem('github_token') || '';
   }
-  if (localStorage.getItem('default_time')) {
-    defaultTime.value = localStorage.getItem('default_time') || '18:00-19:00';
-  }
-  if (localStorage.getItem('autobook_days')) {
-    try {
-      autobookDays.value = JSON.parse(localStorage.getItem('autobook_days') || '["3"]');
-    } catch (e) {
-      console.error('Error parsing autobook days', e);
-    }
-  }
+  // We no longer use localStorage for booking configuration
+  // Configuration is now stored in GitHub only
 }
 </script>
