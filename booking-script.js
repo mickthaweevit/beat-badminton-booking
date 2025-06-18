@@ -54,8 +54,8 @@ function getNextBookingTimestamps() {
   if (slots.length > 0) {
     slots.forEach((slot, index) => {
       if (slot.enabled) {
-        const slotTime = slot.time || bookingTime;
-        console.log(`Configuring slot ${index + 1}: ${slotTime}, Courts: ${slot.courts}`);
+        const slotTime = slot.time;
+        console.log(`Configuring slot ${slot.label}: ${slotTime}, Courts: ${slot.courts}`);
         
         const [startTime, endTime] = slotTime.split('-');
         const [startHour, startMinute] = startTime.split(':').map(num => parseInt(num));
@@ -183,7 +183,7 @@ async function bookAllSlots() {
       hour12: false 
     });
     
-    console.log(`Booking slot ${i + 1} (${startTime}-${endTime}) with ${slot.courts} court(s)...`);
+    console.log(`Booking slot ${i + 1} (${slot.label}) with ${slot.courts} court(s)...`);
     
     // Book the slot
     const success = await bookCourt(slotKey);
