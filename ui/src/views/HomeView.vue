@@ -23,11 +23,8 @@
         </div>
         
         <div class="flex space-x-2">
-          <button class="bg-blue-600 text-white px-2 py-1 rounded text-sm hover:bg-blue-700" @click="saveSettings">
+          <button class="bg-blue-600 text-white px-2 py-1 rounded text-sm hover:bg-blue-700" @click="confirmGitHubSave">
             Save
-          </button>
-          <button v-if="isConfigured" class="bg-gray-200 text-gray-700 px-2 py-1 rounded text-sm" @click="fetchGitHubConfig">
-            Load Config
           </button>
         </div>
       </div>
@@ -68,12 +65,49 @@
           </div>
         </div>
         
-        <button class="bg-green-600 text-white px-2 py-1 rounded text-sm hover:bg-green-700" @click="updateGitHubConfig">
-          Save to GitHub
-        </button>
+        <div class="flex space-x-2">
+          <button class="bg-green-600 text-white px-2 py-1 rounded text-sm hover:bg-green-700" @click="confirmSaveToGitHub">
+            Save to GitHub
+          </button>
+          <button v-if="isConfigured" class="bg-gray-200 text-gray-700 px-2 py-1 rounded text-sm" @click="fetchGitHubConfig">
+            Load Config
+          </button>
+        </div>
         
         <div v-if="configUpdateStatus" class="mt-2 text-sm" :class="configUpdateStatus.success ? 'text-green-600' : 'text-red-600'">
           {{ configUpdateStatus.message }}
+        </div>
+      </div>
+    </div>
+    
+    <!-- Confirmation Dialog for GitHub Settings -->
+    <div v-if="showGitHubConfirmation" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
+      <div class="bg-white p-4 rounded shadow-lg max-w-sm w-full">
+        <h3 class="font-medium mb-2">Save GitHub Settings</h3>
+        <p class="text-sm mb-4">This will update your GitHub authentication settings. Continue?</p>
+        <div class="flex justify-end space-x-2">
+          <button class="px-2 py-1 bg-gray-200 rounded text-sm" @click="showGitHubConfirmation = false">
+            Cancel
+          </button>
+          <button class="px-2 py-1 bg-blue-600 text-white rounded text-sm" @click="confirmAndSaveGitHub">
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Confirmation Dialog for Save to GitHub -->
+    <div v-if="showSaveConfirmation" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
+      <div class="bg-white p-4 rounded shadow-lg max-w-sm w-full">
+        <h3 class="font-medium mb-2">Save to GitHub</h3>
+        <p class="text-sm mb-4">Are you sure you want to save these settings to GitHub?</p>
+        <div class="flex justify-end space-x-2">
+          <button class="px-2 py-1 bg-gray-200 rounded text-sm" @click="showSaveConfirmation = false">
+            Cancel
+          </button>
+          <button class="px-2 py-1 bg-green-600 text-white rounded text-sm" @click="confirmAndSaveToGitHub">
+            Save
+          </button>
         </div>
       </div>
     </div>
@@ -207,18 +241,51 @@ const formatDate = (dateString: string): string => {
 const configUpdateStatus = ref<{ success: boolean; message: string } | null>(null);
 const workflowRuns = ref<any[]>([]);
 const isLoadingWorkflows = ref(false);
+const showGitHubConfirmation = ref(false);
+const showSaveConfirmation = ref(false);
+
+// GitHub settings save confirmation
+const confirmGitHubSave = () => {
+  showGitHubConfirmation.value = true;
+};
+
+const confirmAndSaveGitHub = () => {
+  showGitHubConfirmation.value = false;
+  saveSettings();
+};
+
+// Save to GitHub confirmation
+const confirmSaveToGitHub = () => {
+  showSaveConfirmation.value = true;
+};
+
+const confirmAndSaveToGitHub = () => {
+  showSaveConfirmation.value = false;
+  updateGitHubConfig();
+};
 
 const saveSettings = () => {
   // Save GitHub settings
   localStorage.setItem('github_repo', repository.value);
   localStorage.setItem('github_token', token.value);
-  alert('GitHub settings saved!');
   
   // Fetch config from GitHub if now configured
   if (githubService.isConfigured()) {
     fetchGitHubConfig();
     fetchWorkflowRuns();
   }
+  
+  configUpdateStatus.value = {
+    success: true,
+    message: 'GitHub settings saved successfully!'
+  };
+  
+  // Clear the status message after 3 seconds
+  setTimeout(() => {
+    if (configUpdateStatus.value?.success) {
+      configUpdateStatus.value = null;
+    }
+  }, 3000);
 };
 
 // Function removed as we're only saving to GitHub now
