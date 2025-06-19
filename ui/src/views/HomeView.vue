@@ -66,7 +66,12 @@
         </div>
         
         <div class="flex space-x-2">
-          <button class="bg-green-600 text-white px-2 py-1 rounded text-sm hover:bg-green-700" @click="confirmSaveToGitHub">
+          <button 
+            class="bg-green-600 text-white px-2 py-1 rounded text-sm hover:bg-green-700" 
+            :class="{'opacity-50 cursor-not-allowed': !hasConfigChanges}"
+            :disabled="!hasConfigChanges"
+            @click="updateGitHubConfig"
+          >
             Save to GitHub
           </button>
           <button v-if="isConfigured" class="bg-gray-200 text-gray-700 px-2 py-1 rounded text-sm" @click="fetchGitHubConfig">
@@ -205,6 +210,43 @@ const bookingSlots = ref([
   { label: '20:00', enabled: false, time: '20:00-21:00', courts: 1 },
   { label: '21:00', enabled: false, time: '21:00-22:00', courts: 1 }
 ]);
+
+// Store original configuration from GitHub
+const originalConfig = ref({
+  autobookDays: [],
+  slots: []
+});
+
+// Check if current config differs from original
+const hasConfigChanges = computed(() => {
+  // Check if autobookDays has changed
+  if (originalConfig.value.autobookDays.length !== autobookDays.value.length) {
+    return true;
+  }
+  
+  // Check each day
+  const sortedOriginal = [...originalConfig.value.autobookDays].sort();
+  const sortedCurrent = [...autobookDays.value].map(Number).sort();
+  for (let i = 0; i < sortedOriginal.length; i++) {
+    if (sortedOriginal[i] !== sortedCurrent[i]) {
+      return true;
+    }
+  }
+  
+  // Check each slot
+  for (let i = 0; i < bookingSlots.value.length; i++) {
+    const originalSlot = originalConfig.value.slots[i] || {};
+    const currentSlot = bookingSlots.value[i];
+    
+    if (originalSlot.enabled !== currentSlot.enabled || 
+        originalSlot.courts !== currentSlot.courts) {
+      return true;
+    }
+  }
+  
+  // No changes detected
+  return false;
+});
 
 // Function to get the time label for each slot
 const getTimeLabel = (index: number): string => {
@@ -398,6 +440,12 @@ const fetchGitHubConfig = async () => {
             courts: 1 
           });
         }
+        
+        // Store original configuration for change detection
+        originalConfig.value = {
+          autobookDays: [...configContent.autobookDays],
+          slots: JSON.parse(JSON.stringify(bookingSlots.value))
+        };
       }
     }
   } catch (error: any) {
