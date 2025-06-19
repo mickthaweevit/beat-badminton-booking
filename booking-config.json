@@ -11,7 +11,7 @@
     },
     {
       "label": "18:00",
-      "enabled": true,
+      "enabled": false,
       "time": "18:00-19:00",
       "courts": 2
     },
