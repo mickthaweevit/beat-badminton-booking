@@ -2,8 +2,8 @@ import axios from 'axios';
 
 export class GitHubService {
   private token: string | null = null;
-  private owner: string = '';
-  private repo: string = '';
+  private owner = '';
+  private repo = '';
 
   constructor() {
     this.loadSettings();

@@ -23,7 +23,7 @@
         </div>
         
         <div class="flex space-x-2">
-          <button class="bg-blue-600 text-white px-2 py-1 rounded text-sm hover:bg-blue-700" @click="confirmGitHubSave">
+          <button class="bg-blue-600 text-white px-2 py-1 rounded text-sm hover:bg-blue-700" @click="confirmGitHubSettingsSave">
             Save
           </button>
         </div>
@@ -68,11 +68,11 @@
         <div class="flex space-x-2">
           <button 
             class="bg-green-600 text-white px-2 py-1 rounded text-sm hover:bg-green-700" 
-            :class="{'opacity-50 cursor-not-allowed': !hasConfigChanges}"
-            :disabled="!hasConfigChanges"
-            @click="updateGitHubConfig"
+            :class="{'opacity-50 cursor-not-allowed': !hasConfigChanges || isSavingConfig}"
+            :disabled="!hasConfigChanges || isSavingConfig"
+            @click="confirmSaveGitHubConfigured"
           >
-            Save to GitHub
+            {{ isSavingConfig ? 'Saving...' : 'Save to GitHub' }}
           </button>
           <button v-if="isConfigured" class="bg-gray-200 text-gray-700 px-2 py-1 rounded text-sm" @click="fetchGitHubConfig">
             Load Config
@@ -86,15 +86,15 @@
     </div>
     
     <!-- Confirmation Dialog for GitHub Settings -->
-    <div v-if="showGitHubConfirmation" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
+    <div v-if="showSaveGitHubSettingsConfirmation" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
       <div class="bg-white p-4 rounded shadow-lg max-w-sm w-full">
         <h3 class="font-medium mb-2">Save GitHub Settings</h3>
         <p class="text-sm mb-4">This will update your GitHub authentication settings. Continue?</p>
         <div class="flex justify-end space-x-2">
-          <button class="px-2 py-1 bg-gray-200 rounded text-sm" @click="showGitHubConfirmation = false">
+          <button class="px-2 py-1 bg-gray-200 rounded text-sm" @click="showSaveGitHubSettingsConfirmation = false">
             Cancel
           </button>
-          <button class="px-2 py-1 bg-blue-600 text-white rounded text-sm" @click="confirmAndSaveGitHub">
+          <button class="px-2 py-1 bg-blue-600 text-white rounded text-sm" @click="onSaveGitHubSettingsConfirm">
             Save
           </button>
         </div>
@@ -102,15 +102,15 @@
     </div>
     
     <!-- Confirmation Dialog for Save to GitHub -->
-    <div v-if="showSaveConfirmation" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
+    <div v-if="showSaveConfiguredConfirmation" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
       <div class="bg-white p-4 rounded shadow-lg max-w-sm w-full">
         <h3 class="font-medium mb-2">Save to GitHub</h3>
         <p class="text-sm mb-4">Are you sure you want to save these settings to GitHub?</p>
         <div class="flex justify-end space-x-2">
-          <button class="px-2 py-1 bg-gray-200 rounded text-sm" @click="showSaveConfirmation = false">
+          <button class="px-2 py-1 bg-gray-200 rounded text-sm" @click="showSaveConfiguredConfirmation = false">
             Cancel
           </button>
-          <button class="px-2 py-1 bg-green-600 text-white rounded text-sm" @click="confirmAndSaveToGitHub">
+          <button class="px-2 py-1 bg-green-600 text-white rounded text-sm" @click="onSaveGitHubConfiguredConfirm">
             Save
           </button>
         </div>
@@ -211,10 +211,18 @@ const bookingSlots = ref([
   { label: '21:00', enabled: false, time: '21:00-22:00', courts: 1 }
 ]);
 
+// Define slot type
+interface BookingSlot {
+  label: string;
+  enabled: boolean;
+  time: string;
+  courts: number;
+}
+
 // Store original configuration from GitHub
 const originalConfig = ref({
-  autobookDays: [],
-  slots: []
+  autobookDays: [] as number[],
+  slots: [] as BookingSlot[]
 });
 
 // Check if current config differs from original
@@ -283,26 +291,27 @@ const formatDate = (dateString: string): string => {
 const configUpdateStatus = ref<{ success: boolean; message: string } | null>(null);
 const workflowRuns = ref<any[]>([]);
 const isLoadingWorkflows = ref(false);
-const showGitHubConfirmation = ref(false);
-const showSaveConfirmation = ref(false);
+const isSavingConfig = ref(false);
+const showSaveGitHubSettingsConfirmation = ref(false);
+const showSaveConfiguredConfirmation = ref(false);
 
-// GitHub settings save confirmation
-const confirmGitHubSave = () => {
-  showGitHubConfirmation.value = true;
+// Confirm save github_repo and github_token to localStorage
+const confirmGitHubSettingsSave = () => {
+  showSaveGitHubSettingsConfirmation.value = true;
 };
 
-const confirmAndSaveGitHub = () => {
-  showGitHubConfirmation.value = false;
+const onSaveGitHubSettingsConfirm = () => {
+  showSaveGitHubSettingsConfirmation.value = false;
   saveSettings();
 };
 
-// Save to GitHub confirmation
-const confirmSaveToGitHub = () => {
-  showSaveConfirmation.value = true;
+// Confirm save config to github
+const confirmSaveGitHubConfigured = () => {
+  showSaveConfiguredConfirmation.value = true;
 };
 
-const confirmAndSaveToGitHub = () => {
-  showSaveConfirmation.value = false;
+const onSaveGitHubConfiguredConfirm = () => {
+  showSaveConfiguredConfirmation.value = false;
   updateGitHubConfig();
 };
 
@@ -341,6 +350,7 @@ const updateGitHubConfig = async () => {
     return;
   }
   
+  isSavingConfig.value = true;
   try {
     // Create a commit to update the config file
     const content = {
@@ -354,6 +364,9 @@ const updateGitHubConfig = async () => {
         success: true,
         message: 'GitHub configuration updated successfully!'
       };
+      
+      // Reload config to update originalConfig
+      fetchGitHubConfig();
       
       // Clear the status message after 3 seconds
       setTimeout(() => {
@@ -372,6 +385,8 @@ const updateGitHubConfig = async () => {
       success: false,
       message: `Error: ${error.message}`
     };
+
+    isSavingConfig.value = false;
   }
 };
 
@@ -395,6 +410,7 @@ const fetchWorkflowRuns = async () => {
 const fetchGitHubConfig = async () => {
   if (!isConfigured.value) return;
   
+  isSavingConfig.value = true;
   try {
     // Add a method to githubService to fetch file content
     const configContent = await githubService.getFileContent('booking-config.json');
@@ -450,6 +466,8 @@ const fetchGitHubConfig = async () => {
     }
   } catch (error: any) {
     console.error('Error fetching GitHub config:', error.message);
+  } finally {
+    isSavingConfig.value = false;
   }
 };
 
