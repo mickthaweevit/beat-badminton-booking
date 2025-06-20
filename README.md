@@ -1,82 +1,196 @@
-# Badminton Court Booking Automation
+# 🏸 Badminton Court Booking Automation
 
-This project automatically books badminton courts exactly one week in advance of your selected days using GitHub Actions.
+Automated badminton court booking system with web interface and GitHub Actions integration. Books courts exactly one week in advance using configurable schedules.
 
-## How it works
+## ✨ Features
 
-1. GitHub Actions runs the workflow on your configured days at 17:00 UTC (which is 00:00 Bangkok time)
-2. The script automatically calculates the timestamps for next week's booking slots (exactly 7 days from the current day)
-3. The workflow books the time slots you've configured in the settings
+- 🤖 **Automated Booking**: Books courts exactly 7 days in advance
+- 📅 **Flexible Scheduling**: Configure specific weekdays and time slots
+- 🏟️ **Multiple Courts**: Book multiple courts per time slot
+- 🌐 **Web Interface**: Modern Vue.js UI for easy configuration
+- 🔧 **GitHub Integration**: Store configuration in repository
+- 📊 **Workflow Monitoring**: Track booking success/failure in real-time
+- 🌍 **Timezone Aware**: Proper Bangkok timezone handling
+- 📱 **Responsive Design**: Works on desktop and mobile
 
-## Key Features
+## 🏗️ Architecture
 
-- **Automatic Booking**: Books courts exactly one week in advance
-- **Configurable Days**: Choose which weekdays to book (Monday-Friday)
-- **Configurable Times**: Select default booking time slots
-- **GitHub Integration**: Uses GitHub Actions for reliable scheduling
-- **Web UI**: Simple interface to manage your booking settings
+```
+├── booking-script.js          # Core booking automation
+├── booking-config.json        # Booking configuration
+├── .github/workflows/         # GitHub Actions workflows
+└── ui/                        # Vue.js web interface
+    ├── src/
+    │   ├── components/
+    │   ├── views/
+    │   └── services/
+    └── package.json
+```
 
-## Local Setup
+## 🚀 Quick Start
 
-1. Clone the repository
-2. Create a `.env` file from the example:
-   ```
-   cp .env.example .env
-   ```
-3. Fill in your personal values in the `.env` file:
-   ```
-   TOKEN=your_token_here
-   DEVICE_ID=your_device_id_here
-   CARD_ID=6364
-   SLOT_ID=12489
-   CONTACT=your_phone_number_here
-   ```
-4. Install dependencies:
-   ```
-   npm install
-   ```
-5. For UI development:
-   ```
-   cd ui
-   npm install
-   npm run dev
-   ```
+### 1. Local Development
 
-## GitHub Setup
+```bash
+# Clone repository
+git clone <your-repo-url>
+cd badminton-booking
 
-1. Push this repository to GitHub (the `.env` file will not be included):
-   ```
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git remote add origin https://github.com/your-username/badminton-booking.git
+# Setup environment
+cp .env.example .env
+# Edit .env with your credentials
+
+# Install dependencies
+npm install
+
+# Setup UI
+cd ui
+npm install
+npm run dev  # Starts dev server on http://localhost:3000
+```
+
+### 2. Environment Variables
+
+Create `.env` file with your Loga.app credentials:
+
+```env
+TOKEN=your_loga_token
+DEVICE_ID=your_device_id
+CARD_ID=6364
+SLOT_ID=12489
+CONTACT=your_phone_number
+```
+
+### 3. GitHub Setup
+
+1. **Push to GitHub**:
+   ```bash
+   git remote add origin https://github.com/username/badminton-booking.git
    git push -u origin main
    ```
 
-2. Add your secrets to GitHub repository:
-   - Go to your repository on GitHub
-   - Navigate to Settings > Secrets and variables > Actions
-   - Add the following secrets:
-     - TOKEN
-     - DEVICE_ID
-     - CARD_ID
-     - SLOT_ID
-     - CONTACT
+2. **Add Repository Secrets**:
+   - Go to Settings → Secrets and variables → Actions
+   - Add all environment variables as secrets
 
-3. Enable GitHub Actions:
-   - Go to your repository on GitHub
-   - Click on the "Actions" tab
-   - Click "I understand my workflows, go ahead and enable them"
+3. **Configure via Web UI**:
+   - Enter GitHub repository and token
+   - Select booking days and time slots
+   - Save configuration to GitHub
 
-4. Configure your settings in the UI:
-   - Enter your GitHub repository name and token
-   - Select your preferred booking days and time
-   - Save settings both locally and to GitHub
+## ⚙️ Configuration
 
-## Important Notes
+### Booking Schedule
 
-- GitHub Actions scheduled workflows don't run immediately after being pushed
-- GitHub may delay scheduled workflows by up to 15 minutes during periods of high loads
-- For testing, use the manual trigger option ("workflow_dispatch")
-- Never commit your `.env` file to the repository
-- The GitHub token needs `repo` and `workflow` permissions
+- **Days**: Monday(1) - Friday(5)
+- **Times**: 17:00-22:00 (1-hour slots)
+- **Courts**: 1-3 courts per slot
+
+### Example Configuration
+
+```json
+{
+  "autobookDays": [3, 5],  // Wednesday & Friday
+  "slots": [
+    {
+      "label": "18:00",
+      "enabled": true,
+      "time": "18:00-19:00",
+      "courts": 2
+    }
+  ]
+}
+```
+
+## 🔧 Technology Stack
+
+- **Backend**: Node.js, Axios, Moment-timezone
+- **Frontend**: Vue 3, TypeScript, Tailwind CSS, Vite
+- **Automation**: GitHub Actions
+- **API**: Loga.app booking system
+- **DevTools**: Vue DevTools integration
+
+## 📋 Usage
+
+### Web Interface
+
+1. **GitHub Integration**: Configure repository and token
+2. **Booking Settings**: Select days and time slots
+3. **Monitor Runs**: View workflow execution history
+4. **Real-time Updates**: Configuration synced with GitHub
+
+### Manual Booking
+
+```bash
+# Test booking locally
+node booking-script.js
+```
+
+### GitHub Actions
+
+- **Scheduled**: Runs at 17:00 UTC (00:00 Bangkok) on configured days
+- **Manual**: Trigger via Actions tab
+- **API**: Trigger via repository dispatch
+
+## 🛠️ Development
+
+### UI Development
+
+```bash
+cd ui
+npm run dev     # Development server
+npm run build   # Production build
+npm run lint    # Code linting
+```
+
+### Project Structure
+
+```
+ui/src/
+├── components/     # Reusable components
+├── views/         # Page components
+├── services/      # API services
+├── router/        # Vue Router config
+└── assets/        # Static assets
+```
+
+## 🔒 Security
+
+- Environment variables stored as GitHub secrets
+- No credentials in source code
+- Token-based API authentication
+- Repository access controls
+
+## 📝 Important Notes
+
+- GitHub Actions may delay up to 15 minutes during high load
+- Booking runs exactly 7 days in advance
+- Configuration changes require GitHub token with `repo` and `workflow` permissions
+- UI runs on port 3000 in development
+- Production build deployed to `/beat-badminton-booking/` path
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Booking Fails**: Check API credentials and slot availability
+2. **GitHub Sync Issues**: Verify token permissions
+3. **Timezone Problems**: Ensure Bangkok timezone is configured
+4. **UI Not Loading**: Check if dev server is running on port 3000
+
+### Debug Commands
+
+```bash
+# Test booking script
+node booking-script.js
+
+# Check configuration
+cat booking-config.json
+
+# View logs
+# Check GitHub Actions tab for workflow logs
+```
+
+## 📄 License
+
+MIT License - Feel free to use and modify for your needs.
